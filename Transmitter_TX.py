@@ -4,6 +4,11 @@ import sys
 import math
 import hashlib
 import os
+import time
+
+PORT = 5005
+ACK_TIMEOUT = 1.0  # Sekunden
+ACK_SIZE = 6       # 2 Bytes ID + 4 Bytes SEQ
 
 def main():
     if len(sys.argv) != 5:
@@ -28,6 +33,7 @@ def main():
 
     # UDP-Socket anlegen
     sockel = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sockel.settimeout(ACK_TIMEOUT)
 
     # --- 1) Erstes Paket (Seq=0) ---
     # Erzeuge virtuellen Dateinamen für den Receiver
@@ -55,6 +61,17 @@ def main():
         )
         sockel.sendto(paket, (empfaenger_ip, 5005))
         print(f"[TX] Datenpaket {seq} gesendet ({len(teil)} B)")
+        # Warte auf ACK
+        try:
+            ack, _ = sock.recvfrom(ACK_SIZE)
+            ack_id = int.from_bytes(ack[0:2], 'big')
+            ack_seq = int.from_bytes(ack[2:6], 'big')
+            if ack_id == sendungs_id and ack_seq == seq:
+                print(f"[TX] ACK für Seq {seq} erhalten.")
+                break
+        except socket.timeout:
+            print(f"[TX] Timeout bei Seq {seq}, wiederhole...")
+
         versatz += paket_groesse
 
     # --- 3) Letztes Paket (Seq = max_seq-1) mit MD5 ---

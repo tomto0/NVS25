@@ -29,6 +29,7 @@ public class Transmitter_TX {
         int maxSeq = anzahlDatenPakete + 2;
 
         DatagramSocket socket = new DatagramSocket();
+        socket.setSoTimeout(1000); // 1 Sekunde Timeout
 
         // --- 1) Erstes Paket (Seq=0) ---
         String dateiname = "gen_" + datenGroesse + "B.bin";
@@ -63,9 +64,33 @@ public class Transmitter_TX {
             for (int i = 3; i >= 0; i--) pkt[pos++] = (byte)((seq >> (8*i)) & 0xFF);
             // Daten
             System.arraycopy(daten, offset, pkt, pos, len);
+
+            boolean acked = false;
+            while (!acked) {
             socket.send(new DatagramPacket(pkt, pkt.length, empfaenger, PORT));
             System.out.printf("[TX] Datenpaket %d gesendet (%d B)%n", seq, len);
+
+            // Warten auf ACK, bis ACK empfangen oder Timeout
+                try {
+                    byte[] ackBuf = new byte[6];
+                    DatagramPacket ackPkt = new DatagramPacket(ackBuf, ackBuf.length);
+                    socket.receive(ackPkt);
+
+                    int ackId = ((ackBuf[0] & 0xFF) << 8) | (ackBuf[1] & 0xFF);
+                    int ackSeq = ((ackBuf[2] & 0xFF) << 24) | ((ackBuf[3] & 0xFF) << 16) |
+                            ((ackBuf[4] & 0xFF) << 8) | (ackBuf[5] & 0xFF);
+
+                    System.out.printf("[TX] Empf. ACK: ID=%d, SEQ=%d (erwartet: ID=%d, SEQ=%d)%n",
+                            ackId, ackSeq, sendungsId, seq);
+
+                    if (ackId == sendungsId && ackSeq == seq) {
+                        acked = true;
             offset += len;
+                    }
+                } catch (java.net.SocketTimeoutException e) {
+                    System.out.printf("[TX] Timeout bei Seq %d, wiederhole...%n", seq);
+                }
+            }
         }
 
         // --- 3) Letztes Paket (Seq=maxSeq-1) mit MD5 ---

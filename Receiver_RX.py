@@ -46,6 +46,10 @@ def main():
                 packets[seq] = data[6:]
                 print(f"Packet {seq} stored ({len(data)-6} B)")
 
+                # ACK send
+                ack = txid.to_bytes(2, 'big') + seq.to_bytes(4, 'big')
+                sock.sendto(ack, addr)
+
         # Check complete
         if expected_md5 and len(packets) == max_seq-2:
             # reconstruct

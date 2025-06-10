@@ -2,7 +2,7 @@
 # run_py_java.sh — Python TX → Java RX
 RECEIVER_CMD="java -cp . Receiver_RX"
 TRANSMITTER_CMD="python3 Transmitter_TX.py"
-OUTFILE="results_py_java.txt"
+OUTFILE="results_py_java_ack.txt"
 
 RECEIVER_IP="127.0.0.1"
 TX_ID=1

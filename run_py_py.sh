@@ -2,7 +2,7 @@
 # run_py_py.sh — Python → Python
 RECEIVER_CMD="python3 Receiver_RX.py"
 TRANSMITTER_CMD="python3 Transmitter_TX.py"
-OUTFILE="results_py_py.txt"
+OUTFILE="results_py_py_ack.txt"
 
 RECEIVER_IP="127.0.0.1"
 TX_ID=1

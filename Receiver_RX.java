@@ -51,6 +51,16 @@ public class Receiver_RX {
                 System.arraycopy(data, 6, chunk, 0, payloadLen);
                 speicher.put(seq, chunk);
                 System.out.printf("[RX] Paket %d (%d B) zwischengespeichert%n", seq, payloadLen);
+
+                // Stop-and-Wait ACK senden
+                byte[] ack = new byte[6];
+                ack[0] = (byte)(txId >> 8);
+                ack[1] = (byte)(txId);
+                ack[2] = data[2];
+                ack[3] = data[3];
+                ack[4] = data[4];
+                ack[5] = data[5];
+                socket.send(new DatagramPacket(ack, ack.length, pkt.getAddress(), pkt.getPort()));
             }
 
             // Fertig, wenn alle Datenpakete + Footer da sind

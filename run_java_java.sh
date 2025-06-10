@@ -2,7 +2,7 @@
 # run_java_java.sh — Java → Java
 RECEIVER_CMD="java -cp . Receiver_RX"
 TRANSMITTER_CMD="java -cp . Transmitter_TX"
-OUTFILE="results_java_java.txt"
+OUTFILE="results_java_java_ack.txt"
 
 RECEIVER_IP="127.0.0.1"
 TX_ID=1
